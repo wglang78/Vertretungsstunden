@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vertretungsstunde – Klassenquiz</title>
+<style>
+  :root{
+    --bg:#f4f1ea; --card:#ffffff; --ink:#1d2433; --muted:#6b7280; --line:#e3ded3;
+    --accent:#2f5bea; --accent-soft:#eef2ff;
+    --ok:#15803d; --ok-bg:#dcfce7; --bad:#b91c1c; --bad-bg:#fee2e2; --warn:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  header{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;gap:12px}
+  header h1{font-size:1.25rem;margin:0;letter-spacing:.2px}
+  header h1 span{color:var(--accent)}
+  main{max-width:1050px;margin:0 auto;padding:0 20px 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+  .hidden{display:none!important}
+  h2{margin:0 0 6px}
+  h3{margin:26px 0 10px;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .opt{border:2px solid var(--line);border-radius:14px;padding:16px 12px;cursor:pointer;text-align:center;font-size:1.05rem;background:#fff;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
+  .opt:hover{border-color:#b9c6f7}
+  .opt .ic{font-size:1.9rem;display:block;margin-bottom:6px;line-height:1}
+  .opt .ic.txt{font-size:1.1rem;font-weight:800;color:var(--accent);background:var(--accent-soft);border-radius:8px;display:table;padding:6px 10px;margin:0 auto 8px}
+  .opt small{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:4px}
+  .opt small.custom{color:var(--warn);font-weight:600}
+  .opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .row .opt{min-width:84px;padding:12px 18px}
+  button{font:inherit;border:0;border-radius:12px;padding:12px 22px;cursor:pointer;font-weight:600}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .btn{background:var(--accent);color:#fff}
+  .btn:hover:not(:disabled){filter:brightness(1.08)}
+  .btn.big{font-size:clamp(1.3rem,2.6vw,1.9rem);padding:18px 46px;border-radius:16px}
+  .btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+  .btn.small{padding:8px 14px;font-size:.9rem}
+  .btn.green{background:var(--ok)} .btn.red{background:var(--bad)}
+  label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:4px}
+  .start{margin-top:28px;display:flex;justify-content:flex-end}
+
+  /* Quiz */
+  .bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;font-weight:600}
+  .stats{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.95rem}
+  .stats b{color:var(--ink)}
+  .progress{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .progress div{height:100%;background:var(--ok);width:0;transition:width .3s}
+  .qcard{text-align:center;padding:36px 28px 32px}
+  .qlabel{color:var(--muted);font-size:1rem;margin-bottom:10px}
+  .again{display:inline-block;background:#fef3c7;color:var(--warn);border-radius:99px;padding:3px 12px;font-size:.85rem;font-weight:700;margin-bottom:10px}
+  .prompt{font-size:clamp(1.6rem,4vw,2.8rem);font-weight:700;line-height:1.25;margin:6px 0 22px;word-wrap:break-word}
+  .prompt.math{font-size:clamp(2.6rem,8vw,5.5rem);font-variant-numeric:tabular-nums;letter-spacing:1px}
+  .prompt em{font-style:normal;color:var(--accent)}
+  .flag{max-width:min(520px,90%);max-height:42vh;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.12);margin:4px auto 22px;display:block}
+  .actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+  .answerbox{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .answerbox input{font:inherit;font-size:clamp(1.3rem,2.6vw,1.8rem);padding:14px 18px;border:2px solid var(--accent);border-radius:14px;width:min(520px,100%);text-align:center}
+  .answerbox input:focus{outline:3px solid #c7d2fe}
+  .result{border-radius:16px;padding:18px 20px;margin:4px auto 18px;max-width:640px;font-size:clamp(1.1rem,2.2vw,1.5rem)}
+  .result.ok{background:var(--ok-bg);color:var(--ok)}
+  .result.bad{background:var(--bad-bg);color:var(--bad)}
+  .result .verdict{font-weight:800;font-size:1.25em;margin-bottom:6px}
+  .result .sol{color:var(--ink)}
+  .result .given{color:var(--muted);font-size:.85em;margin-top:4px}
+  .hint{color:var(--muted);font-size:.85rem;margin-top:18px}
+  kbd{background:#f3f4f6;border:1px solid #d1d5db;border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.8rem}
+
+  /* Ende */
+  .big-number{font-size:3rem;font-weight:800;color:var(--ok)}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  td,th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:.9rem}
+
+  /* Lehrerbereich */
+  .modal-bg{position:fixed;inset:0;background:rgba(17,24,39,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:10}
+  .modal{background:#fff;border-radius:18px;padding:26px;width:min(760px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .modal input[type=password],.modal input[type=text],.modal select,.modal textarea{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:10px;width:100%}
+  .modal textarea{min-height:240px;font-family:ui-monospace,Consolas,monospace;font-size:.9rem}
+  .modal .field{margin:12px 0}
+  .modal .field > span{display:block;font-weight:600;margin-bottom:6px}
+  .note{background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.88rem;color:#374151}
+  .msg{margin-top:10px;font-weight:600}
+  .msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+  .err{color:var(--bad);font-size:.9rem}
+  code{background:#f3f4f6;padding:1px 5px;border-radius:4px}
+  details summary{cursor:pointer;font-weight:600;margin-top:16px}
+</style>
+</head>
+<body>
+<header>
+  <h1>📚 <span>Vertretungs</span>stunde</h1>
+  <div class="row">
+    <button class="btn ghost small hidden" id="btnQuit">✕ Quiz beenden</button>
+    <button class="btn ghost small" id="btnTeacher">🔒 Lehrerzugang</button>
+  </div>
+</header>
+
+<main>
+  <!-- ===== Auswahl ===== -->
+  <section id="screenSetup" class="card">
+    <h2>Neues Quiz</h2>
+    <div style="color:var(--muted)">Wer zuerst auf <b>„Lösen“</b> drückt, darf antworten. Falsch beantwortete Fragen kommen kurz darauf noch einmal.</div>
+
+    <h3>1. Sparte wählen</h3>
+    <div class="grid" id="catGrid"></div>
+
+    <div id="dirBox" class="hidden">
+      <h3>Abfragerichtung</h3>
+      <div class="row" id="dirRow"></div>
+    </div>
+
+    <h3>2. Anzahl der Fragen</h3>
+    <div class="row" id="countRow"></div>
+    <div id="countNote" class="hint"></div>
+
+    <h3>Optionen</h3>
+    <label class="chk"><input type="checkbox" id="optTypo" checked> Kleine Tippfehler (1 Buchstabe) als richtig werten</label>
+
+    <div class="start"><button class="btn big" id="btnStart">Quiz starten ▶</button></div>
+  </section>
+
+  <!-- ===== Quiz ===== -->
+  <section id="screenQuiz" class="hidden">
+    <div class="bar">
+      <div id="quizTitle"></div>
+      <div class="stats">
+        <span>Gelöst: <b id="stSolved">0</b> / <b id="stTotal">0</b></span>
+        <span>Noch offen: <b id="stOpen">0</b></span>
+        <span>Fehlversuche: <b id="stWrong">0</b></span>
+      </div>
+    </div>
+    <div class="progress"><div id="progBar"></div></div>
+
+    <div class="card qcard">
+      <div id="againTag" class="again hidden">↻ Diese Frage kommt noch einmal</div>
+      <div class="qlabel" id="qLabel"></div>
+      <img id="qFlag" class="flag hidden" alt="Flagge">
+      <div class="prompt" id="qPrompt"></div>
+
+      <!-- Phase 1: Frage -->
+      <div id="phaseQuestion" class="actions">
+        <button class="btn big" id="btnBuzz">🖐 Lösen</button>
+        <button class="btn ghost" id="btnNobody">Keiner weiß es</button>
+      </div>
+
+      <!-- Phase 2: Antwort eingeben -->
+      <div id="phaseAnswer" class="hidden">
+        <div class="answerbox">
+          <input id="answerInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Antwort eingeben …">
+        </div>
+        <div class="actions" style="margin-top:16px">
+          <button class="btn big" id="btnReveal">Lösung anzeigen</button>
+        </div>
+      </div>
+
+      <!-- Phase 3: Ergebnis -->
+      <div id="phaseResult" class="hidden">
+        <div id="resultBox" class="result"></div>
+        <div class="actions">
+          <button class="btn big" id="btnNext">Weiter ▶</button>
+          <button class="btn ghost small" id="btnOverride"></button>
+        </div>
+      </div>
+
+      <div class="hint"><kbd>Leertaste</kbd> = Lösen · <kbd>Enter</kbd> = Lösung anzeigen / Weiter</div>
+    </div>
+  </section>
+
+  <!-- ===== Ende ===== -->
+  <section id="screenEnd" class="card hidden" style="text-align:center">
+    <div style="font-size:3rem">🎉</div>
+    <h2>Geschafft!</h2>
+    <div class="big-number" id="endSolved"></div>
+    <div id="endText" style="color:var(--muted);margin-bottom:18px"></div>
+    <div id="endHard" style="text-align:left;max-width:640px;margin:0 auto"></div>
+    <div class="actions" style="margin-top:24px">
+      <button class="btn big" id="btnAgain">Nochmal</button>
+      <button class="btn ghost" id="btnBack">Andere Sparte</button>
+    </div>
+  </section>
+</main>
+
+<!-- ===== Lehrerzugang ===== -->
+<div id="teacherModal" class="modal-bg hidden">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2>🔒 Lehrerzugang</h2>
+      <button class="btn ghost small" id="btnCloseTeacher">✕</button>
+    </div>
+
+    <div id="loginBox">
+      <div class="field">
+        <span>Master-Passwort</span>
+        <input type="password" id="pwInput" placeholder="Passwort">
+      </div>
+      <button class="btn" id="btnLogin">Anmelden</button>
+      <div id="loginMsg" class="msg bad"></div>
+    </div>
+
+    <div id="teacherBox" class="hidden">
+      <div class="field">
+        <span>Sparte</span>
+        <select id="tCat"></select>
+      </div>
+      <div class="note" id="tStatus"></div>
+
+      <div class="field">
+        <span>Neue Liste (ersetzt die Standardliste dieser Sparte)</span>
+        <div class="note" id="tFormat" style="margin-bottom:8px"></div>
+        <textarea id="tText" placeholder="Eine Zeile pro Eintrag …"></textarea>
+      </div>
+      <div class="row">
+        <label class="btn ghost small" style="display:inline-block">📄 Datei laden (.txt/.csv)
+          <input type="file" id="tFile" accept=".txt,.csv,text/plain" style="display:none">
+        </label>
+        <button class="btn ghost small" id="btnLoadCurrent">Aktuelle Liste ins Feld laden</button>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn green" id="btnSave">Liste speichern</button>
+        <button class="btn red" id="btnReset">Auf Standardliste zurücksetzen</button>
+      </div>
+      <div id="tMsg" class="msg"></div>
+
+      <details>
+        <summary>Passwort ändern</summary>
+        <div class="note" style="margin-top:8px">
+          Neues Passwort eingeben, den erzeugten Code kopieren und in <code>index.html</code> bei
+          <code>PW_HASH</code> eintragen. Danach die Datei neu auf GitHub hochladen.
+        </div>
+        <div class="field"><input type="text" id="newPw" placeholder="Neues Passwort"></div>
+        <div class="field"><input type="text" id="newHash" readonly placeholder="Hash erscheint hier"></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ================= Einstellungen ================= */
+// SHA-256 des Master-Passworts (Standard: "lehrer2026")
+const PW_HASH = "698635094e2173a863fe23865e13b808430a06f64d8efd27c073f4bf8b9c90e8";
+// Nach wie vielen anderen Fragen kommt eine falsch beantwortete Frage wieder?
+const REPEAT_AFTER = 2;
+const COUNTS = [10, 20, 30, 40, 50];
+
+const CATS = {
+  allgemein:    { name: "Allgemeinwissen", icon: "🧠", editable: true,
+                  format: "Frage;Antwort — z. B. <code>Hauptstadt von Polen?;Warschau</code>" },
+  flaggen:      { name: "Flaggen", icon: "🚩", editable: true,
+                  format: "Ländercode;Ländername — z. B. <code>de;Deutschland</code> (zweistelliger ISO-Code, Flaggen kommen von flagcdn.com)" },
+  englisch:     { name: "Englisch-Vokabeln", icon: "EN", txt: true, lang: "Englisch", editable: true,
+                  format: "Deutsch;Englisch — z. B. <code>Hund;dog</code>" },
+  franzoesisch: { name: "Französisch-Vokabeln", icon: "FR", txt: true, lang: "Französisch", editable: true,
+                  format: "Deutsch;Französisch — z. B. <code>Hund;le chien</code>" },
+  kopfrechnen:  { name: "Kopfrechnen", icon: "➗", editable: false }
+};
+
+/* ================= Hilfsfunktionen ================= */
+const $ = id => document.getElementById(id);
+const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function show(el, on){ el.classList.toggle("hidden", !on); }
+
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+const customKey = cat => "vertretungsstunde_liste_" + cat;
+function getList(cat){
+  const c = store.get(customKey(cat));
+  return (Array.isArray(c) && c.length) ? c : (DEFAULT_DATA[cat] || []);
+}
+function isCustom(cat){ const c = store.get(customKey(cat)); return Array.isArray(c) && c.length > 0; }
+
+// Antworten vergleichbar machen
+function norm(s){
+  s = String(s).toLowerCase().replace(/ß/g,"ss").replace(/œ/g,"oe").replace(/æ/g,"ae");
+  s = s.normalize("NFD").replace(/[̀-ͯ]/g,"");
+  s = s.replace(/\./g,"").replace(/[’'`´\-–_,!?;:()"„“«»]/g," ").replace(/\s+/g," ").trim();
+  s = s.replace(/^(der|die|das|ein|eine|the|a|an|to|le|la|les|l|un|une|des|du)\s+/,"");
+  return s;
+}
+function lev(a,b){
+  const m=a.length,n=b.length; if(Math.abs(m-n)>1) return 2;
+  let prev=Array.from({length:n+1},(_,i)=>i);
+  for(let i=1;i<=m;i++){ const cur=[i];
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur; }
+  return prev[n];
+}
+function check(given, answers, typo){
+  const g = norm(given);
+  if(!g) return {ok:false};
+  for(const a of answers){
+    const n = norm(a);
+    if(g === n) return {ok:true};
+  }
+  if(typo){
+    for(const a of answers){
+      const n = norm(a);
+      if(n.length >= 5 && !/^\d+$/.test(n) && lev(g,n) <= 1) return {ok:true, typo:true};
+    }
+  }
+  return {ok:false};
+}
+const splitAlt = s => String(s).split("/").map(x=>x.trim()).filter(Boolean);
+
+// kompaktes SHA-256 (funktioniert auch ohne https)
+function sha256(str){
+  const bytes = new TextEncoder().encode(str);
+  const K=[],H=[]; let n=2,c=0;
+  const isP=x=>{for(let i=2;i*i<=x;i++) if(x%i===0) return false; return true;};
+  const frac=x=>((x-Math.floor(x))*4294967296)|0;
+  while(c<64){ if(isP(n)){ if(c<8) H[c]=frac(Math.pow(n,1/2)); K[c]=frac(Math.pow(n,1/3)); c++; } n++; }
+  const l=bytes.length, bl=l*8, total=((l+9+63)>>6)<<6;
+  const m=new Uint8Array(total); m.set(bytes); m[l]=0x80;
+  const dv=new DataView(m.buffer); dv.setUint32(total-4,bl>>>0); dv.setUint32(total-8,Math.floor(bl/4294967296));
+  const r=(x,k)=>(x>>>k)|(x<<(32-k)); const w=new Int32Array(64);
+  for(let o=0;o<total;o+=64){
+    for(let i=0;i<16;i++) w[i]=dv.getInt32(o+i*4);
+    for(let i=16;i<64;i++){ const s0=r(w[i-15],7)^r(w[i-15],18)^(w[i-15]>>>3), s1=r(w[i-2],17)^r(w[i-2],19)^(w[i-2]>>>10); w[i]=(w[i-16]+s0+w[i-7]+s1)|0; }
+    let [a,b,cc,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      const S1=r(e,6)^r(e,11)^r(e,25), ch=(e&f)^(~e&g), t1=(h+S1+ch+K[i]+w[i])|0;
+      const S0=r(a,2)^r(a,13)^r(a,22), mj=(a&b)^(a&cc)^(b&cc), t2=(S0+mj)|0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=cc; cc=b; b=a; a=(t1+t2)|0;
+    }
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+cc)|0;H[3]=(H[3]+d)|0;H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;
+  }
+  return H.map(x=>(x>>>0).toString(16).padStart(8,"0")).join("");
+}
+
+/* ================= Auswahl-Bildschirm ================= */
+const setup = { cat: "allgemein", count: 10, dir: "de2x" };
+
+function renderSetup(){
+  const grid = $("catGrid"); grid.innerHTML = "";
+  for(const [key, c] of Object.entries(CATS)){
+    const b = document.createElement("button");
+    b.className = "opt" + (setup.cat === key ? " sel" : "");
+    const sub = key === "kopfrechnen" ? "+ − · : (zufällig)"
+      : (isCustom(key) ? "★ eigene Liste (" + getList(key).length + ")" : getList(key).length + " Einträge");
+    b.innerHTML = `<span class="ic${c.txt?" txt":""}">${c.icon}</span>${c.name}<small class="${isCustom(key)?"custom":""}">${sub}</small>`;
+    b.onclick = () => { setup.cat = key; renderSetup(); };
+    grid.appendChild(b);
+  }
+
+  const c = CATS[setup.cat];
+  show($("dirBox"), !!c.lang);
+  if(c.lang){
+    const dr = $("dirRow"); dr.innerHTML = "";
+    [["de2x","Deutsch → " + c.lang],["x2de", c.lang + " → Deutsch"],["mix","Gemischt"]].forEach(([k,label])=>{
+      const b = document.createElement("button");
+      b.className = "opt" + (setup.dir === k ? " sel" : "");
+      b.textContent = label; b.onclick = () => { setup.dir = k; renderSetup(); };
+      dr.appendChild(b);
+    });
+  }
+
+  const cr = $("countRow"); cr.innerHTML = "";
+  COUNTS.forEach(n => {
+    const b = document.createElement("button");
+    b.className = "opt" + (setup.count === n ? " sel" : "");
+    b.textContent = n; b.onclick = () => { setup.count = n; renderSetup(); };
+    cr.appendChild(b);
+  });
+  const avail = setup.cat === "kopfrechnen" ? Infinity : getList(setup.cat).length;
+  $("countNote").textContent = avail < setup.count
+    ? `Hinweis: Diese Liste hat nur ${avail} Einträge – es werden alle ${avail} verwendet.` : "";
+}
+
+/* ================= Fragen bauen ================= */
+function makeMath(){
+  const op = ["+","−","·",":"][rand(0,3)];
+  let a,b,r;
+  if(op==="+"){ a=rand(12,89); b=rand(5,99-a+10); r=a+b; }
+  else if(op==="−"){ a=rand(25,150); b=rand(5,a-1); r=a-b; }
+  else if(op==="·"){ a=rand(2,12); b=rand(2,12); r=a*b; }
+  else { b=rand(2,12); r=rand(2,12); a=b*r; }
+  return { label:"Rechne im Kopf:", prompt:`${a} ${op} ${b} = ?`, math:true, answers:[String(r)], solution:String(r) };
+}
+
+function buildQuestions(){
+  const n = setup.count, cat = setup.cat, out = [];
+  if(cat === "kopfrechnen"){
+    const seen = new Set();
+    while(out.length < n){ const q = makeMath(); if(!seen.has(q.prompt)){ seen.add(q.prompt); out.push(q); } }
+  } else {
+    const items = shuffle(getList(cat).slice()).slice(0, n);
+    for(const [left, right] of items){
+      if(cat === "allgemein"){
+        const ans = splitAlt(right);
+        out.push({ label:"Frage:", prompt:left, answers:ans, solution:ans[0] });
+      } else if(cat === "flaggen"){
+        const ans = splitAlt(right);
+        out.push({ label:"Welches Land hat diese Flagge?", prompt:"", flag:String(left).trim().toLowerCase(), answers:ans, solution:ans[0] });
+      } else {
+        const lang = CATS[cat].lang;
+        const de = splitAlt(left), fx = splitAlt(right);
+        const dir = setup.dir === "mix" ? (Math.random() < .5 ? "de2x" : "x2de") : setup.dir;
+        if(dir === "de2x") out.push({ label:`Was heißt das auf ${lang}?`, word:de.join(" / "), answers:fx, solution:fx.join(" / ") });
+        else out.push({ label:"Was heißt das auf Deutsch?", word:fx[0], answers:de, solution:de.join(" / ") });
+      }
+    }
+  }
+  out.forEach(q => { q.wrong = 0; });
+  return out;
+}
+
+/* ================= Quiz-Ablauf ================= */
+let quiz = null;
+
+function startQuiz(){
+  const qs = buildQuestions();
+  if(!qs.length){ alert("Diese Sparte enthält keine Fragen."); return; }
+  quiz = { queue: qs, all: qs.slice(), current: null, solved: 0, wrong: 0, phase: "question", lastOk: false, typo: $("optTypo").checked };
+  $("quizTitle").textContent = CATS[setup.cat].name;
+  $("stTotal").textContent = qs.length;
+  show($("screenSetup"), false); show($("screenEnd"), false); show($("screenQuiz"), true); show($("btnQuit"), true);
+  nextQuestion();
+}
+
+function updateStats(){
+  $("stSolved").textContent = quiz.solved;
+  $("stOpen").textContent = quiz.all.length - quiz.solved;
+  $("stWrong").textContent = quiz.wrong;
+  $("progBar").style.width = (100 * quiz.solved / quiz.all.length) + "%";
+}
+
+function setPhase(p){
+  quiz.phase = p;
+  show($("phaseQuestion"), p === "question");
+  show($("phaseAnswer"), p === "answer");
+  show($("phaseResult"), p === "result");
+}
+
+function nextQuestion(){
+  updateStats();
+  if(!quiz.queue.length){ finish(); return; }
+  const q = quiz.current = quiz.queue.shift();
+  show($("againTag"), q.wrong > 0);
+  $("qLabel").textContent = q.label;
+  const p = $("qPrompt"); p.className = "prompt" + (q.math ? " math" : ""); p.textContent = "";
+  if(q.word){ const em = document.createElement("em"); em.textContent = q.word; p.appendChild(em); }
+  else p.textContent = q.prompt;
+  show(p, !!(q.word || q.prompt));
+  const img = $("qFlag");
+  if(q.flag){ img.src = `https://flagcdn.com/w640/${encodeURIComponent(q.flag)}.png`; show(img, true); }
+  else { img.removeAttribute("src"); show(img, false); }
+  $("answerInput").value = "";
+  $("answerInput").inputMode = q.math ? "numeric" : "text";
+  setPhase("question");
+  $("btnBuzz").focus();
+}
+
+function buzz(){
+  setPhase("answer");
+  setTimeout(() => $("answerInput").focus(), 30);
+}
+
+function reveal(nobody){
+  const q = quiz.current;
+  const given = nobody ? "" : $("answerInput").value.trim();
+  const res = nobody ? {ok:false} : check(given, q.answers, quiz.typo);
+  quiz.lastOk = res.ok;
+  quiz.lastGiven = given; quiz.lastTypo = !!res.typo; quiz.nobody = !!nobody;
+  renderResult();
+  setPhase("result");
+  $("btnNext").focus();
+}
+
+function renderResult(){
+  const q = quiz.current, box = $("resultBox");
+  box.className = "result " + (quiz.lastOk ? "ok" : "bad");
+  box.innerHTML = "";
+  const v = document.createElement("div"); v.className = "verdict";
+  v.textContent = quiz.lastOk ? "✓ Richtig!" + (quiz.lastTypo ? " (kleiner Tippfehler)" : "")
+                              : (quiz.nobody ? "Die Lösung ist:" : "✗ Leider falsch");
+  const s = document.createElement("div"); s.className = "sol";
+  s.textContent = (quiz.nobody ? "" : "Lösung: ") + q.solution;
+  box.append(v, s);
+  if(!quiz.nobody){
+    const g = document.createElement("div"); g.className = "given";
+    g.textContent = "Eingegeben: " + (quiz.lastGiven || "–");
+    box.appendChild(g);
+  }
+  if(!quiz.lastOk){
+    const a = document.createElement("div"); a.className = "given";
+    a.textContent = "Die Frage kommt gleich noch einmal.";
+    box.appendChild(a);
+  }
+  $("btnOverride").textContent = quiz.lastOk ? "Doch falsch werten" : "Doch richtig werten";
+  show($("btnOverride"), !quiz.nobody);
+}
+
+function next(){
+  const q = quiz.current;
+  if(quiz.lastOk) quiz.solved++;
+  else {
+    q.wrong++; quiz.wrong++;
+    quiz.queue.splice(Math.min(REPEAT_AFTER, quiz.queue.length), 0, q);
+  }
+  nextQuestion();
+}
+
+function finish(){
+  show($("screenQuiz"), false); show($("screenEnd"), true); show($("btnQuit"), false);
+  const total = quiz.all.length;
+  $("endSolved").textContent = `${total} / ${total}`;
+  $("endText").textContent = quiz.wrong === 0
+    ? "Alle Fragen beim ersten Versuch richtig – stark!"
+    : `Alle Fragen gelöst – mit ${quiz.wrong} Fehlversuch${quiz.wrong === 1 ? "" : "en"}.`;
+  const hard = quiz.all.filter(q => q.wrong > 0).sort((a,b) => b.wrong - a.wrong);
+  const box = $("endHard"); box.innerHTML = "";
+  if(hard.length){
+    const h = document.createElement("h3"); h.textContent = "Diese Fragen waren schwierig"; box.appendChild(h);
+    const t = document.createElement("table");
+    t.innerHTML = "<tr><th>Frage</th><th>Lösung</th><th>Fehlversuche</th></tr>";
+    hard.forEach(q => {
+      const tr = document.createElement("tr");
+      [q.word || q.prompt || ("Flagge: " + q.flag.toUpperCase()), q.solution, q.wrong].forEach(x => {
+        const td = document.createElement("td"); td.textContent = x; tr.appendChild(td);
+      });
+      t.appendChild(tr);
+    });
+    box.appendChild(t);
+  }
+}
+
+function backToSetup(){
+  quiz = null;
+  show($("screenQuiz"), false); show($("screenEnd"), false); show($("btnQuit"), false); show($("screenSetup"), true);
+  renderSetup();
+}
+
+/* ================= Tastatur ================= */
+document.addEventListener("keydown", e => {
+  if(!quiz || !$("teacherModal").classList.contains("hidden")) return;
+  if(!$("screenQuiz").classList.contains("hidden")){
+    if(quiz.phase === "question" && (e.code === "Space" || e.key === "Enter")){ e.preventDefault(); buzz(); }
+    else if(quiz.phase === "answer" && e.key === "Enter"){ e.preventDefault(); reveal(false); }
+    else if(quiz.phase === "result" && e.key === "Enter"){ e.preventDefault(); next(); }
+  }
+});
+
+/* ================= Buttons ================= */
+$("btnStart").onclick = startQuiz;
+$("btnBuzz").onclick = buzz;
+$("btnNobody").onclick = () => reveal(true);
+$("btnReveal").onclick = () => reveal(false);
+$("btnNext").onclick = next;
+$("btnOverride").onclick = () => { quiz.lastOk = !quiz.lastOk; quiz.lastTypo = false; renderResult(); $("btnNext").focus(); };
+$("btnAgain").onclick = startQuiz;
+$("btnBack").onclick = backToSetup;
+$("btnQuit").onclick = () => { if(confirm("Quiz wirklich beenden?")) backToSetup(); };
+
+/* ================= Lehrerbereich ================= */
+let teacherOk = false;
+
+function openTeacher(){
+  show($("teacherModal"), true);
+  show($("loginBox"), !teacherOk); show($("teacherBox"), teacherOk);
+  $("loginMsg").textContent = ""; $("pwInput").value = "";
+  if(teacherOk) renderTeacher(); else setTimeout(() => $("pwInput").focus(), 30);
+}
+function closeTeacher(){ show($("teacherModal"), false); renderSetup(); }
+
+function login(){
+  if(sha256($("pwInput").value) === PW_HASH){
+    teacherOk = true; show($("loginBox"), false); show($("teacherBox"), true); renderTeacher();
+  } else $("loginMsg").textContent = "Falsches Passwort.";
+}
+
+function renderTeacher(){
+  const sel = $("tCat");
+  if(!sel.options.length){
+    for(const [k,c] of Object.entries(CATS)) if(c.editable){
+      const o = document.createElement("option"); o.value = k; o.textContent = c.name; sel.appendChild(o);
+    }
+    sel.value = CATS[setup.cat].editable ? setup.cat : "allgemein";
+  }
+  const cat = sel.value;
+  $("tFormat").innerHTML = "<b>Format:</b> " + CATS[cat].format +
+    "<br>Eine Zeile pro Eintrag. Trennzeichen: <code>;</code> oder Tabulator (direkt aus Excel kopierbar). " +
+    "Mehrere richtige Antworten mit <code>/</code> trennen. Zeilen mit <code>#</code> werden ignoriert.";
+  $("tStatus").innerHTML = isCustom(cat)
+    ? `Aktuell aktiv: <b>eigene Liste</b> mit ${getList(cat).length} Einträgen.`
+    : `Aktuell aktiv: <b>Standardliste</b> mit ${getList(cat).length} Einträgen.`;
+  $("tMsg").textContent = ""; $("tMsg").className = "msg";
+}
+
+function parseList(text, cat){
+  const items = [], errors = [];
+  text.split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.trim();
+    if(!line || line.startsWith("#")) return;
+    const m = line.match(/^(.*?)\s*(?:;|\t)\s*(.*)$/);
+    if(!m || !m[1].trim() || !m[2].trim()){ errors.push(`Zeile ${i+1}: „${line}“`); return; }
+    let a = m[1].trim(), b = m[2].replace(/[;\t]+$/,"").trim();
+    if(cat === "flaggen"){
+      a = a.toLowerCase();
+      if(!/^[a-z]{2}(-[a-z]{2,3})?$/.test(a)){ errors.push(`Zeile ${i+1}: „${a}“ ist kein Ländercode`); return; }
+    }
+    items.push([a, b]);
+  });
+  return { items, errors };
+}
+
+$("btnTeacher").onclick = openTeacher;
+$("btnCloseTeacher").onclick = closeTeacher;
+$("teacherModal").onclick = e => { if(e.target === $("teacherModal")) closeTeacher(); };
+$("btnLogin").onclick = login;
+$("pwInput").onkeydown = e => { if(e.key === "Enter") login(); };
+$("tCat").onchange = renderTeacher;
+
+$("tFile").onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { $("tText").value = r.result; };
+  r.readAsText(f, "UTF-8");
+  e.target.value = "";
+};
+$("btnLoadCurrent").onclick = () => {
+  $("tText").value = getList($("tCat").value).map(([a,b]) => a + ";" + b).join("\n");
+};
+$("btnSave").onclick = () => {
+  const cat = $("tCat").value, { items, errors } = parseList($("tText").value, cat);
+  const msg = $("tMsg");
+  if(!items.length){ msg.className = "msg bad"; msg.textContent = "Keine gültigen Einträge gefunden."; return; }
+  if(!store.set(customKey(cat), items)){ msg.className = "msg bad"; msg.textContent = "Speichern nicht möglich (Browser-Speicher blockiert)."; return; }
+  renderTeacher();
+  msg.className = "msg ok";
+  msg.innerHTML = `✓ ${items.length} Einträge gespeichert – ersetzt die Standardliste „${CATS[cat].name}“.`;
+  if(errors.length){
+    const d = document.createElement("div"); d.className = "err";
+    d.textContent = `${errors.length} Zeile(n) übersprungen: ` + errors.slice(0,5).join(" · ") + (errors.length > 5 ? " …" : "");
+    msg.appendChild(d);
+  }
+};
+$("btnReset").onclick = () => {
+  const cat = $("tCat").value;
+  if(!confirm(`Eigene Liste für „${CATS[cat].name}“ löschen und Standardliste verwenden?`)) return;
+  store.del(customKey(cat)); renderTeacher();
+  $("tMsg").className = "msg ok"; $("tMsg").textContent = "✓ Standardliste ist wieder aktiv.";
+};
+$("newPw").oninput = () => { $("newHash").value = $("newPw").value ? sha256($("newPw").value) : ""; };
+
+renderSetup();
+</script>
+</body>
+</html>
