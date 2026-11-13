@@ -20,7 +20,9 @@
   .hidden{display:none!important}
   h2{margin:0 0 6px}
   h3{margin:26px 0 10px;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
+  input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}
   .opt{border:2px solid var(--line);border-radius:14px;padding:16px 12px;cursor:pointer;text-align:center;font-size:1.05rem;background:#fffdf9;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
   .opt:hover{border-color:#f3b88f}
   .opt .ic{font-size:1.9rem;display:block;margin-bottom:6px;line-height:1}
@@ -263,7 +265,9 @@ const CATS = {
                   format: "Deutsch;Englisch — z. B. <code>Hund;dog</code>" },
   franzoesisch: { name: "Französisch-Vokabeln", icon: "FR", txt: true, lang: "Französisch", editable: true,
                   format: "Deutsch;Französisch — z. B. <code>Hund;le chien</code>" },
-  kopfrechnen:  { name: "Kopfrechnen", icon: "➗", editable: false }
+  kopfrechnen:  { name: "Kopfrechnen", icon: "➗", editable: false },
+  raetsel:      { name: "Rätsel", icon: "🧩", editable: true,
+                  format: "Frage;Antwort — z. B. <code>Was hat Zähne, kann aber nicht beißen?;Kamm</code><br>Optional als 3. Spalte ein Link (z. B. YouTube), der nach der Lösung gezeigt wird: <code>Frage;Antwort;https://…</code>" }
 };
 
 /* ================= Hilfsfunktionen ================= */
@@ -411,9 +415,9 @@ function buildQuestions(){
   } else {
     const items = shuffle(getList(cat).slice()).slice(0, n);
     for(const [left, right, media, mediaTitle] of items){
-      if(cat === "allgemein"){
+      if(cat === "allgemein" || cat === "raetsel"){
         const ans = splitAlt(right);
-        out.push({ label:"Frage:", prompt:left, answers:ans, solution:ans[0], media:media || "", mediaTitle:mediaTitle || "" });
+        out.push({ label: cat === "raetsel" ? "Rätsel:" : "Frage:", prompt:left, answers:ans, solution:ans[0], media:media || "", mediaTitle:mediaTitle || "" });
       } else if(cat === "flaggen"){
         const ans = splitAlt(right);
         out.push({ label:"Welches Land hat diese Flagge?", prompt:"", flag:String(left).trim().toLowerCase(), answers:ans, solution:ans[0] });

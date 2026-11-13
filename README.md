@@ -1,6 +1,6 @@
 # Vertretungsstunde – Klassenquiz
 
-Ein Quiz für den Beamer: Allgemeinwissen, Flaggen, Englisch- und Französisch-Vokabeln und Kopfrechnen.
+Ein Quiz für den Beamer: Allgemeinwissen, Flaggen, Englisch- und Französisch-Vokabeln, Kopfrechnen und Rätsel (mit eigener Quizliste).
 
 ## So läuft das Quiz
 1. Sparte und Anzahl der Fragen (5–25) wählen, **Quiz starten**.

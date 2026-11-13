@@ -123,5 +123,38 @@ const DEFAULT_DATA = {
     ["essen", "manger"], ["trinken", "boire"], ["schlafen", "dormir"], ["Hausaufgaben", "les devoirs"],
     ["Geburtstag", "l'anniversaire"], ["Küche", "la cuisine"], ["Garten", "le jardin"], ["Fluss", "la rivière/le fleuve"],
     ["Berg", "la montagne"], ["Vogel", "l'oiseau"], ["Pferd", "le cheval"], ["Danke", "merci"]
+  ],
+  // Rätsel: Frage ; Antwort (mehrere richtige Antworten mit "/")
+  raetsel: [
+    ["Was hat Zähne, kann aber nicht beißen?", "Kamm"],
+    ["Was wird nasser, je mehr es trocknet?", "Handtuch"],
+    ["Was hat einen Hals, aber keinen Kopf?", "Flasche"],
+    ["Was gehört dir, wird aber von anderen viel öfter benutzt als von dir?", "dein Name/Name"],
+    ["Was hat Zeiger, kann aber nicht zeigen, wohin du gehen sollst?", "Uhr"],
+    ["Je mehr man wegnimmt, desto größer wird es. Was ist das?", "Loch"],
+    ["Was hat ein Auge, kann aber nicht sehen?", "Nadel/Nähnadel"],
+    ["Was kann man fangen, aber nicht werfen?", "Erkältung/Schnupfen"],
+    ["Was ist schwerer: ein Kilo Federn oder ein Kilo Eisen?", "gleich schwer/gleich/beide/beide gleich"],
+    ["Welcher Monat hat 28 Tage?", "alle/jeder/alle Monate/jeder Monat"],
+    ["Was steht mitten in Berlin?", "r/Buchstabe r/das r"],
+    ["Was hat viele Blätter, ist aber kein Baum?", "Buch/Heft"],
+    ["Was geht durchs ganze Land und bewegt sich doch nicht?", "Straße/Weg"],
+    ["Womit beginnt der Tag und endet die Nacht?", "T/Buchstabe T/das T"],
+    ["Was hat vier Beine, kann aber nicht laufen?", "Tisch/Stuhl"],
+    ["Was hat Städte ohne Häuser und Flüsse ohne Wasser?", "Landkarte/Karte/Atlas"],
+    ["Was liegt immer vor dir, und trotzdem kannst du es nicht sehen?", "Zukunft"],
+    ["Was zerbricht schon, wenn man nur seinen Namen sagt?", "Stille/Schweigen/Ruhe"],
+    ["Was hat ein Kopfende und ein Fußende, aber keinen Körper?", "Bett"],
+    ["Welche Zahl wird größer, wenn man sie auf den Kopf stellt?", "6/sechs"],
+    ["Was kommt einmal in jeder Minute, zweimal in jedem Moment, aber nie in tausend Jahren?", "M/Buchstabe M/das M"],
+    ["Wie viele Tiere jeder Art nahm Mose mit auf die Arche?", "keine/null/0/gar keine"],
+    ["Was hat Tasten, aber öffnet keine Tür?", "Klavier/Tastatur/Computer"],
+    ["Was ist voller Löcher und hält trotzdem Wasser?", "Schwamm"],
+    ["Was hat Flügel, kann aber nicht fliegen?", "Windmühle/Mühle"],
+    ["Was reist um die ganze Welt und bleibt doch immer in seiner Ecke?", "Briefmarke"],
+    ["Was läuft ohne Beine und hat ein Bett, in dem es nie schläft?", "Fluss/Bach"],
+    ["Was wird jeden Tag älter, ist aber nie älter als einen Tag?", "Tag/heute/der Tag"],
+    ["Was kann man nicht sehen, aber man hört es, und es antwortet, ohne gefragt zu werden?", "Echo"],
+    ["Was hat einen Rücken, aber keine Arme und keine Beine?", "Buch/Stuhl/Messer"]
   ]
 };
