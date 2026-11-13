@@ -193,7 +193,7 @@
     <div id="loginBox">
       <div class="field">
         <span>Master-Passwort</span>
-        <input type="password" id="pwInput" placeholder="Passwort">
+        <input type="password" id="pwInput" placeholder="Passwort" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       </div>
       <button class="btn" id="btnLogin">Anmelden</button>
       <div id="loginMsg" class="msg bad"></div>
@@ -239,8 +239,8 @@
 <script src="data.js"></script>
 <script>
 /* ================= Einstellungen ================= */
-// SHA-256 des Master-Passworts
-const PW_HASH = "699d752446a6e6de1cf83ea2567e18a78778f9f01045b17e6166622ffb4fa030";
+// SHA-256 des Master-Passworts (in Kleinbuchstaben; Groß-/Kleinschreibung und Leerzeichen werden ignoriert)
+const PW_HASH = "97cc99c3d57ceff35ef78deed81709552ee450da56ba2d4d4b01b55b79299b28";
 // Nach wie vielen anderen Fragen kommt eine falsch beantwortete Frage wieder?
 const REPEAT_AFTER = 2;
 const COUNTS = [10, 20, 30, 40, 50];
@@ -569,7 +569,7 @@ function openTeacher(){
 function closeTeacher(){ show($("teacherModal"), false); renderSetup(); }
 
 function login(){
-  if(sha256($("pwInput").value) === PW_HASH){
+  if(sha256($("pwInput").value.trim().toLowerCase()) === PW_HASH){
     teacherOk = true; show($("loginBox"), false); show($("teacherBox"), true); renderTeacher();
   } else $("loginMsg").textContent = "Falsches Passwort.";
 }
@@ -646,7 +646,7 @@ $("btnReset").onclick = () => {
   store.del(customKey(cat)); renderTeacher();
   $("tMsg").className = "msg ok"; $("tMsg").textContent = "✓ Standardliste ist wieder aktiv.";
 };
-$("newPw").oninput = () => { $("newHash").value = $("newPw").value ? sha256($("newPw").value) : ""; };
+$("newPw").oninput = () => { $("newHash").value = $("newPw").value ? sha256($("newPw").value.trim().toLowerCase()) : ""; };
 
 renderSetup();
 </script>
