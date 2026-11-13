@@ -3,7 +3,7 @@
 Ein Quiz für den Beamer: Allgemeinwissen, Flaggen, Englisch- und Französisch-Vokabeln und Kopfrechnen.
 
 ## So läuft das Quiz
-1. Sparte und Anzahl der Fragen (10–50) wählen, **Quiz starten**.
+1. Sparte und Anzahl der Fragen (5–25) wählen, **Quiz starten**.
 2. Wer zuerst auf **🖐 Lösen** drückt (oder die Leertaste), darf antworten.
 3. Antwort eintippen, **Lösung anzeigen** (Enter).
 4. Richtig → nächste Frage. Falsch → die Frage kommt nach 2 anderen Fragen noch einmal.
