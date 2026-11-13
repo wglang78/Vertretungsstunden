@@ -3,7 +3,7 @@
 Ein Quiz für den Beamer: Allgemeinwissen, Flaggen, Englisch- und Französisch-Vokabeln, Kopfrechnen und Rätsel (mit eigener Quizliste).
 
 ## So läuft das Quiz
-1. Sparte und Anzahl der Fragen (5–25) wählen, **Quiz starten**.
+1. Klasse (1–10), Sparte und Anzahl der Fragen (5–25) wählen, **Quiz starten**.
 2. Wer zuerst auf **🖐 Lösen** drückt (oder die Leertaste), darf antworten.
 3. Antwort eintippen, **Lösung anzeigen** (Enter).
 4. Richtig → nächste Frage. Falsch → die Frage kommt nach 2 anderen Fragen noch einmal.
@@ -13,6 +13,13 @@ Mit „Doch richtig werten“ / „Doch falsch werten“ kann die Lehrkraft die 
 Beim Start wechselt die Seite in den Vollbildmodus, beim Beenden zurück.
 Zum Antworten erscheint eine Bildschirmtastatur (beim Kopfrechnen ein Ziffernblock), damit alles an der Tafel bedient werden kann.
 Groß-/Kleinschreibung, Akzente und Artikel (der/die/das, the, to, le/la/l') spielen beim Vergleich keine Rolle.
+
+## Klassenstufen
+- Allgemeinwissen, Englisch und Französisch haben eigene Listen für Kl. 1–2, 3–4, 5–6, 7–8 und 9–10 (Sprachen: Kl. 9–10 ≈ Niveau A2).
+- Flaggen: In der Grundschule (Kl. 1–4) nur Europa, danach zunehmend Länder aus aller Welt.
+- Kopfrechnen: Aufgaben passend zu jeder Klasse (Zahlenraum 20 bis Gleichungen und Prozente).
+- Rätsel: Für Kl. 1–4 nur die einfachen Rätsel.
+- Eigene Listen gelten für alle Klassen.
 
 ## Lehrerzugang
 - Oben rechts **🔒 Lehrerzugang** (Passwort kennt die Lehrkraft)
