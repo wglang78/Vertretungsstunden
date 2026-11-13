@@ -13,7 +13,7 @@ Mit „Doch richtig werten“ / „Doch falsch werten“ kann die Lehrkraft die 
 Groß-/Kleinschreibung, Akzente und Artikel (der/die/das, the, to, le/la/l') spielen beim Vergleich keine Rolle.
 
 ## Lehrerzugang
-- Oben rechts **🔒 Lehrerzugang**, Passwort: `Vertretung1`
+- Oben rechts **🔒 Lehrerzugang** (Passwort kennt die Lehrkraft)
 - Sparte wählen, Liste einfügen oder als .txt/.csv laden → **Liste speichern**.
   Die Liste ersetzt dann die Standardliste dieser Sparte.
 - Format: eine Zeile pro Eintrag, getrennt mit `;` oder Tabulator (Spalten aus Excel lassen sich direkt einfügen):
