@@ -222,16 +222,6 @@
         <button class="btn red" id="btnReset">Auf Standardliste zurücksetzen</button>
       </div>
       <div id="tMsg" class="msg"></div>
-
-      <details>
-        <summary>Passwort ändern</summary>
-        <div class="note" style="margin-top:8px">
-          Neues Passwort eingeben, den erzeugten Code kopieren und in <code>index.html</code> bei
-          <code>PW_HASH</code> eintragen. Danach die Datei neu auf GitHub hochladen.
-        </div>
-        <div class="field"><input type="text" id="newPw" placeholder="Neues Passwort"></div>
-        <div class="field"><input type="text" id="newHash" readonly placeholder="Hash erscheint hier"></div>
-      </details>
     </div>
   </div>
 </div>
@@ -646,7 +636,6 @@ $("btnReset").onclick = () => {
   store.del(customKey(cat)); renderTeacher();
   $("tMsg").className = "msg ok"; $("tMsg").textContent = "✓ Standardliste ist wieder aktiv.";
 };
-$("newPw").oninput = () => { $("newHash").value = $("newPw").value ? sha256($("newPw").value.trim().toLowerCase()) : ""; };
 
 renderSetup();
 </script>

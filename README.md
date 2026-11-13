@@ -24,8 +24,6 @@ Groß-/Kleinschreibung, Akzente und Artikel (der/die/das, the, to, le/la/l') spi
   Mehrere richtige Antworten mit `/` trennen.
 - **Wichtig:** Eigene Listen werden nur im Browser des jeweiligen Rechners gespeichert (z. B. am Lehrer-PC).
   Auf einem anderen Gerät ist wieder die Standardliste aktiv.
-- **Passwort ändern:** Im Lehrerbereich unter „Passwort ändern“ den Hash erzeugen und in `index.html` bei `PW_HASH` eintragen.
-  (Das Passwort schützt nur vor neugierigen Schülern – es ist kein echter Sicherheitsschutz.)
 
 ## Standardlisten ändern
 Die Standardfragen stehen in `data.js` und können dort direkt bearbeitet werden.
