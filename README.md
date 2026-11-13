@@ -10,6 +10,8 @@ Ein Quiz für den Beamer: Allgemeinwissen, Flaggen, Englisch- und Französisch-V
 5. Das Quiz ist zu Ende, wenn alle Fragen richtig beantwortet wurden.
 
 Mit „Doch richtig werten“ / „Doch falsch werten“ kann die Lehrkraft die Bewertung korrigieren.
+Beim Start wechselt die Seite in den Vollbildmodus, beim Beenden zurück.
+Zum Antworten erscheint eine Bildschirmtastatur (beim Kopfrechnen ein Ziffernblock), damit alles an der Tafel bedient werden kann.
 Groß-/Kleinschreibung, Akzente und Artikel (der/die/das, the, to, le/la/l') spielen beim Vergleich keine Rolle.
 
 ## Lehrerzugang
@@ -22,8 +24,9 @@ Groß-/Kleinschreibung, Akzente und Artikel (der/die/das, the, to, le/la/l') spi
   Fahrrad;bike/bicycle
   ```
   Mehrere richtige Antworten mit `/` trennen.
-- **Wichtig:** Eigene Listen werden nur im Browser des jeweiligen Rechners gespeichert (z. B. am Lehrer-PC).
-  Auf einem anderen Gerät ist wieder die Standardliste aktiv.
+- Bei Allgemeinwissen kann als 3. Spalte ein Link stehen (z. B. YouTube). Er wird nach der Lösung angezeigt, YouTube-Videos werden direkt eingebettet.
+- **Wichtig:** Eigene Listen werden nur im Browser des jeweiligen Rechners gespeichert und **nach 60 Minuten automatisch gelöscht**.
+  Danach gilt wieder die Standardliste.
 
 ## Standardlisten ändern
 Die Standardfragen stehen in `data.js` und können dort direkt bearbeitet werden.

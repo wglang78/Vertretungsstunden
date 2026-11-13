@@ -65,6 +65,25 @@
   .result .sol{color:var(--ink)}
   .result .given{color:var(--muted);font-size:.85em;margin-top:4px}
   .hint{color:var(--muted);font-size:.85rem;margin-top:18px}
+  .media{margin:12px auto 0;max-width:560px}
+  .media .video{position:relative;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#000}
+  .media iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .media a{display:inline-block;margin-top:8px;font-size:.8em;color:var(--accent)}
+  /* Bildschirmtastatur */
+  .vkb{margin:16px auto 0;max-width:980px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  .vkb .krow{display:flex;justify-content:center;gap:6px;margin-bottom:6px}
+  .vkb button{flex:1 1 0;max-width:78px;min-height:clamp(46px,7vh,68px);padding:0;font-size:clamp(1.1rem,2.2vw,1.6rem);background:#fff;color:var(--ink);border:2px solid var(--line);border-bottom-width:4px;border-radius:12px}
+  .vkb button:active{background:var(--accent-soft);border-color:var(--accent);transform:translateY(1px)}
+  .vkb button.w2{flex-grow:2;max-width:170px;font-size:clamp(.95rem,1.6vw,1.2rem)}
+  .vkb button.space{flex-grow:6;max-width:480px}
+  .vkb button.go{flex-grow:3;max-width:300px;background:var(--accent);color:#fff;border-color:#1e40af}
+  .vkb button.acc{background:#fff7ed}
+  .vkb.num{max-width:360px}
+  .vkb.num button{max-width:110px;min-height:clamp(54px,8vh,76px)}
+  .qcard.answering .flag{max-height:24vh;margin-bottom:12px}
+  .qcard.answering .prompt{margin-bottom:12px}
+  .qcard.answering .prompt.math{font-size:clamp(2.2rem,6vw,4rem)}
+  .expiry{font-size:.75rem;color:var(--warn);font-weight:600}
   kbd{background:#f3f4f6;border:1px solid #d1d5db;border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.8rem}
 
   /* Ende */
@@ -148,11 +167,9 @@
       <!-- Phase 2: Antwort eingeben -->
       <div id="phaseAnswer" class="hidden">
         <div class="answerbox">
-          <input id="answerInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Antwort eingeben …">
+          <input id="answerInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="none" placeholder="Antwort eingeben …">
         </div>
-        <div class="actions" style="margin-top:16px">
-          <button class="btn big" id="btnReveal">Lösung anzeigen</button>
-        </div>
+        <div id="vkb" class="vkb"></div>
       </div>
 
       <!-- Phase 3: Ergebnis -->
@@ -234,10 +251,12 @@ const PW_HASH = "97cc99c3d57ceff35ef78deed81709552ee450da56ba2d4d4b01b55b79299b2
 // Nach wie vielen anderen Fragen kommt eine falsch beantwortete Frage wieder?
 const REPEAT_AFTER = 2;
 const COUNTS = [10, 20, 30, 40, 50];
+// Eigene Listen werden nach dieser Zeit automatisch gelöscht (Minuten)
+const LIST_LIFETIME_MIN = 60;
 
 const CATS = {
   allgemein:    { name: "Allgemeinwissen", icon: "🧠", editable: true,
-                  format: "Frage;Antwort — z. B. <code>Hauptstadt von Polen?;Warschau</code>" },
+                  format: "Frage;Antwort — z. B. <code>Hauptstadt von Polen?;Warschau</code><br>Optional als 3. Spalte ein Link (z. B. YouTube), der nach der Lösung gezeigt wird: <code>Frage;Antwort;https://…</code>" },
   flaggen:      { name: "Flaggen", icon: "🚩", editable: true,
                   format: "Ländercode;Ländername — z. B. <code>de;Deutschland</code> (zweistelliger ISO-Code, Flaggen kommen von flagcdn.com)" },
   englisch:     { name: "Englisch-Vokabeln", icon: "EN", txt: true, lang: "Englisch", editable: true,
@@ -259,11 +278,22 @@ const store = {
   del(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
 const customKey = cat => "vertretungsstunde_liste_" + cat;
-function getList(cat){
+// Eigene Liste lesen; abgelaufene Listen (älter als LIST_LIFETIME_MIN) werden gelöscht
+function getCustom(cat){
   const c = store.get(customKey(cat));
-  return (Array.isArray(c) && c.length) ? c : (DEFAULT_DATA[cat] || []);
+  if(!c || !Array.isArray(c.items) || !c.items.length || typeof c.saved !== "number"){
+    if(c) store.del(customKey(cat));
+    return null;
+  }
+  if(Date.now() - c.saved > LIST_LIFETIME_MIN * 60000){ store.del(customKey(cat)); return null; }
+  return c;
 }
-function isCustom(cat){ const c = store.get(customKey(cat)); return Array.isArray(c) && c.length > 0; }
+function getList(cat){ const c = getCustom(cat); return c ? c.items : (DEFAULT_DATA[cat] || []); }
+function isCustom(cat){ return !!getCustom(cat); }
+function minutesLeft(cat){
+  const c = getCustom(cat); if(!c) return 0;
+  return Math.max(1, Math.ceil((c.saved + LIST_LIFETIME_MIN * 60000 - Date.now()) / 60000));
+}
 
 // Antworten vergleichbar machen
 function norm(s){
@@ -332,7 +362,7 @@ function renderSetup(){
     const b = document.createElement("button");
     b.className = "opt" + (setup.cat === key ? " sel" : "");
     const sub = key === "kopfrechnen" ? "+ − · : (zufällig)"
-      : (isCustom(key) ? "★ eigene Liste (" + getList(key).length + ")" : getList(key).length + " Einträge");
+      : (isCustom(key) ? "★ eigene Liste (" + getList(key).length + ") · noch " + minutesLeft(key) + " Min." : getList(key).length + " Einträge");
     b.innerHTML = `<span class="ic${c.txt?" txt":""}">${c.icon}</span>${c.name}<small class="${isCustom(key)?"custom":""}">${sub}</small>`;
     b.onclick = () => { setup.cat = key; renderSetup(); };
     grid.appendChild(b);
@@ -380,10 +410,10 @@ function buildQuestions(){
     while(out.length < n){ const q = makeMath(); if(!seen.has(q.prompt)){ seen.add(q.prompt); out.push(q); } }
   } else {
     const items = shuffle(getList(cat).slice()).slice(0, n);
-    for(const [left, right] of items){
+    for(const [left, right, media, mediaTitle] of items){
       if(cat === "allgemein"){
         const ans = splitAlt(right);
-        out.push({ label:"Frage:", prompt:left, answers:ans, solution:ans[0] });
+        out.push({ label:"Frage:", prompt:left, answers:ans, solution:ans[0], media:media || "", mediaTitle:mediaTitle || "" });
       } else if(cat === "flaggen"){
         const ans = splitAlt(right);
         out.push({ label:"Welches Land hat diese Flagge?", prompt:"", flag:String(left).trim().toLowerCase(), answers:ans, solution:ans[0] });
@@ -400,6 +430,90 @@ function buildQuestions(){
   return out;
 }
 
+/* ================= Vollbild ================= */
+function enterFullscreen(){
+  const el = document.documentElement;
+  try{
+    if(document.fullscreenElement || document.webkitFullscreenElement) return;
+    const r = (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+    if(r && r.catch) r.catch(() => {});
+  }catch(e){}
+}
+function exitFullscreen(){
+  try{
+    if(!(document.fullscreenElement || document.webkitFullscreenElement)) return;
+    const r = (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    if(r && r.catch) r.catch(() => {});
+  }catch(e){}
+}
+
+/* ================= Medien (YouTube-Einbettung) ================= */
+function youtubeId(url){
+  const m = String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+function renderMedia(q, box){
+  if(!q.media || !/^https?:\/\//i.test(q.media)) return;
+  const wrap = document.createElement("div"); wrap.className = "media";
+  const id = youtubeId(q.media);
+  if(id){
+    const v = document.createElement("div"); v.className = "video";
+    const f = document.createElement("iframe");
+    f.src = "https://www.youtube-nocookie.com/embed/" + id + "?rel=0";
+    f.title = q.mediaTitle || "Video";
+    f.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    f.allowFullscreen = true;
+    v.appendChild(f); wrap.appendChild(v);
+  }
+  const a = document.createElement("a");
+  a.href = q.media; a.target = "_blank"; a.rel = "noopener";
+  a.textContent = "▶ " + (q.mediaTitle || (id ? "Video auf YouTube öffnen" : "Link öffnen"));
+  wrap.appendChild(a);
+  box.appendChild(wrap);
+}
+
+/* ================= Bildschirmtastatur ================= */
+function vkbInsert(t){
+  const inp = $("answerInput");
+  const s = inp.selectionStart ?? inp.value.length, e = inp.selectionEnd ?? inp.value.length;
+  inp.value = inp.value.slice(0, s) + t + inp.value.slice(e);
+  const pos = s + t.length;
+  try{ inp.setSelectionRange(pos, pos); }catch(err){}
+}
+function vkbBackspace(){
+  const inp = $("answerInput");
+  let s = inp.selectionStart ?? inp.value.length, e = inp.selectionEnd ?? inp.value.length;
+  if(s === e){ if(s === 0) return; s--; }
+  inp.value = inp.value.slice(0, s) + inp.value.slice(e);
+  try{ inp.setSelectionRange(s, s); }catch(err){}
+}
+function buildKeyboard(math){
+  const k = $("vkb"); k.innerHTML = ""; k.className = "vkb" + (math ? " num" : "");
+  const rows = math
+    ? [["7","8","9"],["4","5","6"],["1","2","3"],["⌫","0","↵"]]
+    : [["1","2","3","4","5","6","7","8","9","0","ß"],
+       ["q","w","e","r","t","z","u","i","o","p","ü"],
+       ["a","s","d","f","g","h","j","k","l","ö","ä"],
+       ["y","x","c","v","b","n","m","-","'","⌫"],
+       ...(setup.cat === "franzoesisch" ? [["é","è","ê","à","â","ç","ô","û","î","ë","œ"]] : []),
+       ["Leeren","␣","↵"]];
+  for(const row of rows){
+    const r = document.createElement("div"); r.className = "krow";
+    for(const key of row){
+      const b = document.createElement("button"); b.type = "button";
+      if(key === "⌫"){ b.textContent = "⌫"; b.className = math ? "" : "w2"; b.onclick = vkbBackspace; }
+      else if(key === "↵"){ b.textContent = "Lösung anzeigen ↵"; b.className = "go"; if(math) b.textContent = "✓"; b.onclick = () => reveal(false); }
+      else if(key === "␣"){ b.textContent = "Leertaste"; b.className = "space"; b.onclick = () => vkbInsert(" "); }
+      else if(key === "Leeren"){ b.textContent = "Leeren"; b.className = "w2"; b.onclick = () => { $("answerInput").value = ""; }; }
+      else { b.textContent = key; if(/[éèêàâçôûîëœ]/.test(key)) b.className = "acc"; b.onclick = () => vkbInsert(key); }
+      // Fokus im Eingabefeld behalten
+      b.addEventListener("mousedown", ev => ev.preventDefault());
+      r.appendChild(b);
+    }
+    k.appendChild(r);
+  }
+}
+
 /* ================= Quiz-Ablauf ================= */
 let quiz = null;
 
@@ -407,6 +521,7 @@ function startQuiz(){
   const qs = buildQuestions();
   if(!qs.length){ alert("Diese Sparte enthält keine Fragen."); return; }
   quiz = { queue: qs, all: qs.slice(), current: null, solved: 0, wrong: 0, phase: "question", lastOk: false, typo: $("optTypo").checked };
+  enterFullscreen();
   $("quizTitle").textContent = CATS[setup.cat].name;
   $("stTotal").textContent = qs.length;
   show($("screenSetup"), false); show($("screenEnd"), false); show($("screenQuiz"), true); show($("btnQuit"), true);
@@ -425,6 +540,7 @@ function setPhase(p){
   show($("phaseQuestion"), p === "question");
   show($("phaseAnswer"), p === "answer");
   show($("phaseResult"), p === "result");
+  document.querySelector(".qcard").classList.toggle("answering", p === "answer");
 }
 
 function nextQuestion(){
@@ -447,6 +563,7 @@ function nextQuestion(){
 }
 
 function buzz(){
+  buildKeyboard(!!quiz.current.math);
   setPhase("answer");
   setTimeout(() => $("answerInput").focus(), 30);
 }
@@ -482,6 +599,7 @@ function renderResult(){
     a.textContent = "Die Frage kommt gleich noch einmal.";
     box.appendChild(a);
   }
+  renderMedia(q, box);
   $("btnOverride").textContent = quiz.lastOk ? "Doch falsch werten" : "Doch richtig werten";
   show($("btnOverride"), !quiz.nobody);
 }
@@ -522,6 +640,7 @@ function finish(){
 
 function backToSetup(){
   quiz = null;
+  exitFullscreen();
   show($("screenQuiz"), false); show($("screenEnd"), false); show($("btnQuit"), false); show($("screenSetup"), true);
   renderSetup();
 }
@@ -540,7 +659,6 @@ document.addEventListener("keydown", e => {
 $("btnStart").onclick = startQuiz;
 $("btnBuzz").onclick = buzz;
 $("btnNobody").onclick = () => reveal(true);
-$("btnReveal").onclick = () => reveal(false);
 $("btnNext").onclick = next;
 $("btnOverride").onclick = () => { quiz.lastOk = !quiz.lastOk; quiz.lastTypo = false; renderResult(); $("btnNext").focus(); };
 $("btnAgain").onclick = startQuiz;
@@ -575,9 +693,10 @@ function renderTeacher(){
   const cat = sel.value;
   $("tFormat").innerHTML = "<b>Format:</b> " + CATS[cat].format +
     "<br>Eine Zeile pro Eintrag. Trennzeichen: <code>;</code> oder Tabulator (direkt aus Excel kopierbar). " +
-    "Mehrere richtige Antworten mit <code>/</code> trennen. Zeilen mit <code>#</code> werden ignoriert.";
+    "Mehrere richtige Antworten mit <code>/</code> trennen. Zeilen mit <code>#</code> werden ignoriert.<br>" +
+    `<span class="expiry">⏱ Eigene Listen werden nach ${LIST_LIFETIME_MIN} Minuten automatisch gelöscht – danach gilt wieder die Standardliste.</span>`;
   $("tStatus").innerHTML = isCustom(cat)
-    ? `Aktuell aktiv: <b>eigene Liste</b> mit ${getList(cat).length} Einträgen.`
+    ? `Aktuell aktiv: <b>eigene Liste</b> mit ${getList(cat).length} Einträgen – wird in <b>${minutesLeft(cat)} Minuten</b> automatisch gelöscht.`
     : `Aktuell aktiv: <b>Standardliste</b> mit ${getList(cat).length} Einträgen.`;
   $("tMsg").textContent = ""; $("tMsg").className = "msg";
 }
@@ -587,14 +706,14 @@ function parseList(text, cat){
   text.split(/\r?\n/).forEach((raw, i) => {
     const line = raw.trim();
     if(!line || line.startsWith("#")) return;
-    const m = line.match(/^(.*?)\s*(?:;|\t)\s*(.*)$/);
-    if(!m || !m[1].trim() || !m[2].trim()){ errors.push(`Zeile ${i+1}: „${line}“`); return; }
-    let a = m[1].trim(), b = m[2].replace(/[;\t]+$/,"").trim();
+    const parts = line.split(/\s*(?:;|\t)\s*/).map(x => x.trim());
+    if(parts.length < 2 || !parts[0] || !parts[1]){ errors.push(`Zeile ${i+1}: „${line}“`); return; }
+    let a = parts[0], b = parts[1], link = parts[2] || "";
     if(cat === "flaggen"){
       a = a.toLowerCase();
       if(!/^[a-z]{2}(-[a-z]{2,3})?$/.test(a)){ errors.push(`Zeile ${i+1}: „${a}“ ist kein Ländercode`); return; }
     }
-    items.push([a, b]);
+    if(link && /^https?:\/\//i.test(link)) items.push([a, b, link]); else items.push([a, b]);
   });
   return { items, errors };
 }
@@ -614,13 +733,13 @@ $("tFile").onchange = e => {
   e.target.value = "";
 };
 $("btnLoadCurrent").onclick = () => {
-  $("tText").value = getList($("tCat").value).map(([a,b]) => a + ";" + b).join("\n");
+  $("tText").value = getList($("tCat").value).map(r => r.slice(0, 3).join(";")).join("\n");
 };
 $("btnSave").onclick = () => {
   const cat = $("tCat").value, { items, errors } = parseList($("tText").value, cat);
   const msg = $("tMsg");
   if(!items.length){ msg.className = "msg bad"; msg.textContent = "Keine gültigen Einträge gefunden."; return; }
-  if(!store.set(customKey(cat), items)){ msg.className = "msg bad"; msg.textContent = "Speichern nicht möglich (Browser-Speicher blockiert)."; return; }
+  if(!store.set(customKey(cat), { saved: Date.now(), items })){ msg.className = "msg bad"; msg.textContent = "Speichern nicht möglich (Browser-Speicher blockiert)."; return; }
   renderTeacher();
   msg.className = "msg ok";
   msg.innerHTML = `✓ ${items.length} Einträge gespeichert – ersetzt die Standardliste „${CATS[cat].name}“.`;
@@ -638,6 +757,8 @@ $("btnReset").onclick = () => {
 };
 
 renderSetup();
+// Ablauf eigener Listen regelmäßig prüfen (aktualisiert die Anzeige auf dem Startbildschirm)
+setInterval(() => { if(!$("screenSetup").classList.contains("hidden")) renderSetup(); }, 30000);
 </script>
 </body>
 </html>

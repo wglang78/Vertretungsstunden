@@ -1,6 +1,7 @@
 // Standardlisten für die Vertretungsstunde.
 // Mehrere richtige Antworten mit "/" trennen, z. B. "Tokio/Tokyo".
 // Die erste Antwort wird als Lösung angezeigt.
+// Allgemeinwissen: optional 3. Feld = Link (YouTube wird eingebettet), 4. Feld = Titel des Links.
 
 const DEFAULT_DATA = {
   allgemein: [
@@ -27,7 +28,7 @@ const DEFAULT_DATA = {
     ["Wie viele Spieler einer Fußballmannschaft stehen auf dem Feld?", "11/elf"],
     ["Welche Farbe entsteht, wenn man Blau und Gelb mischt?", "Grün"],
     ["Wie heißt die Hauptstadt von Österreich?", "Wien"],
-    ["Wer komponierte die „Ode an die Freude“?", "Beethoven/Ludwig van Beethoven"],
+    ["Wer komponierte die „Ode an die Freude“?", "Beethoven/Ludwig van Beethoven", "https://www.youtube.com/watch?v=a23945btJYw", "Evenord-Bank Flashmob Nürnberg 2014 – Ode an die Freude"],
     ["Welches ist das flächenmäßig größte Land der Erde?", "Russland"],
     ["Wie viele Zähne hat ein Erwachsener normalerweise?", "32"],
     ["Bei wie viel Grad Celsius kocht Wasser auf Meereshöhe?", "100"],
